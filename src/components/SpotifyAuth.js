@@ -1,9 +1,13 @@
 import React from 'react';
+import { connect } from 'react-redux';
+import {
+  signIn
+} from '../actions';
 
 const authEndpoint = 'https://accounts.spotify.com/authorize';
 
 const clientId = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
-const redirectUri = "http://localhost:3000";
+const redirectUri = process.env.REACT_APP_SPOTIFY_REDIRECT_URI;
 const scopes = [
   "user-read-currently-playing",
   "user-read-playback-state",
@@ -22,35 +26,36 @@ const hash = window.location.hash
 window.location.hash = "";
 
 class SpotifyAuth extends React.Component {
-  state = {
-    token: ''
-  }
-
   componentDidMount() {
-    // Set token
     const token = hash.access_token;
     if (token) {
       // Set token
-      this.setState({
-        token
-      });
+      this.props.signIn(token);
     }
   }
 
   render() {
     return (
       <div>
-        {!this.state.token && (
+        {!this.props.auth.token && (
         <a href={`${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join("%20")}&response_type=token&show_dialog=true`}>
           Login to Spotify
         </a>
       )}
-      {this.state.token && (
-        <div>In</div>
+      {this.props.auth.token && (
+        <div>Signed In</div>
       )}
       </div>
     );
   }
 }
 
-export default SpotifyAuth;
+const mapStateToProps = state => {
+  return {
+    auth: state.auth
+  };
+};
+
+export default connect(mapStateToProps, {
+  signIn
+})(SpotifyAuth);
